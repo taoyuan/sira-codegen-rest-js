@@ -27,7 +27,7 @@ describe('codegen', function () {
     it('should work', function () {
         var source = generator.generate({
             moduleName: 'service',
-            classes: s.restClasses(this.sapp)
+            metadata: this.sapp
         }, 'angular');
         t.ok(source);
     });
@@ -36,7 +36,7 @@ describe('codegen', function () {
         var source = generator.generate({
             moduleName: 'service',
             resultful: true,
-            classes: s.restClasses(this.sapp)
+            metadata: this.sapp
         }, 'angular');
         t.ok(source);
     });
