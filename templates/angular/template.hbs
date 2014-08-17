@@ -1,0 +1,269 @@
+(function(window, angular, undefined) {'use strict';
+
+var urlBase = {{q url}};
+
+/**
+* @ngdoc overview
+* @name {{moduleName}}
+* @module
+* @description
+*
+* The `{{moduleName}}` module provides services for interacting with
+* the models exposed by the server via the REST API.
+*
+*/
+var module = angular.module({{q moduleName}}, ['ngResource']);
+
+{{#forEach classes}}
+    /**
+    * @ngdoc object
+    * @name {{moduleName}}.{{className}}
+    * @object
+    *
+    * @description
+    *
+    * A $resource object for interacting with the `{{className}}` model.
+    *
+    * ## Example
+    *
+    * See
+    * {@link http://docs.angularjs.org/api/ngResource.$resource#example $resource}
+    * for an example of using this object.
+    *
+    */
+    {{!
+        TODO(bajtos) provide an example of performing basic CrUD operations,
+        including filter/where find query
+    ~}}
+    module.factory({{q className}}, ['SiraResource', 'SiraAuth', '$injector', function(Resource, SiraAuth, $injector) {
+    {{! Constructor arguments are hardcoded for now. We should generate it from sharedCtor.accepts instead. ~}}
+    var R = Resource(urlBase + {{q path}}, { 'id': '@id' }, {
+    {{#forEach actions}}
+        {{#unless isFirst}},{{/unless}}
+        {{ngdocForAction this.actionName this}}
+        {{q actionName}}: {
+            url: urlBase + {{q path}},
+            method: {{q method}}
+        {{#unless resultful}}
+            {{#if returns.isArray}}
+                ,
+                isArray: true
+            {{/if}}
+        {{/unless}} {{! resultful }}
+        {{#if isUserLogin}}
+            ,
+            params: {
+                include: "user"
+            },
+            interceptor: {
+                response: function(response) {
+                    var accessToken = response.data;
+                    SiraAuth.setUser(accessToken.id, accessToken.userId, accessToken.user);
+                    SiraAuth.rememberMe = response.config.params.rememberMe !== false;
+                    SiraAuth.save();
+                    return response.resource;
+                }
+            }
+        {{/if}}
+        {{#if isUserLogout}}
+            ,
+            interceptor: {
+                response: function(response) {
+                    SiraAuth.clearUser();
+                    SiraAuth.save();
+                    return response.resource;
+                }
+            }
+        {{/if}}
+        }
+    {{/forEach}}
+    {{#if isUser}}
+        ,
+        /**
+        * @ngdoc method
+        * @name {{moduleName}}.{{className}}#getCurrent
+        * @methodOf {{moduleName}}.{{className}}
+        *
+        * @description
+        *
+        * Get data of the currently logged user. Fail with HTTP result 401
+        * when there is no user logged in.
+        *
+        * @param {Function(Object, Object)=} successCb
+        *    Success callback with two arguments: `value`, `responseHeaders`.
+        *
+        * @param {Function(Object)=} errorCb Error callback with one argument:
+        *    `httpResponse`.
+        *
+        * @return {Object} An empty reference that will be
+        *   populated with the actual data once the response is returned
+        *   from the server.
+        */
+        "getCurrent": {
+            url: urlBase + "/" + {{q path}} + "/:id",
+            method: "GET",
+            params: {
+                id: function() {
+                    var id = SiraAuth.currentUserId;
+                    if (id == null) id = '__anonymous__';
+                    return id;
+                }
+            },
+            interceptor: {
+                response: function(response) {
+                    SiraAuth.currentUserData = response.data;
+                    return response.resource;
+                }
+            },
+            __isGetCurrentUser__ : true
+        }
+    {{/if}}
+    });
+    
+    {{! aliases }}
+    {{#forEach actions}}
+        {{#forEach aliases}}
+            {{ngdocForAction this ..}}
+            R[{{q this}}] = R[{{q ../actionName}}];
+        {{/forEach}}
+    {{/forEach}}
+
+    {{#if isUser}}
+        /**
+        * @ngdoc method
+        * @name {{moduleName}}.{{className}}#getCachedCurrent
+        * @methodOf {{moduleName}}.{{className}}
+        *
+        * @description
+        *
+        * Get data of the currently logged user that was returned by the last
+        * call to {@link {{moduleName}}.{{className}}#login} or
+        * {@link {{moduleName}}.{{className}}#getCurrent}. Return null when there
+        * is no user logged in or the data of the current user were not fetched
+        * yet.
+        *
+        * @return {Object} A {{className}} instance.
+        */
+        R.getCachedCurrent = function() {
+            var data = SiraAuth.currentUserData;
+            return data ? new R(data) : null;
+        };
+
+        /**
+        * @ngdoc method
+        * @name {{moduleName}}.{{className}}#isAuthenticated
+        * @methodOf {{moduleName}}.{{className}}
+        *
+        * @return {boolean} True if the current user is authenticated (logged in).
+        */
+        R.isAuthenticated = function() {
+            return this.getCurrentId() != null;
+        };
+
+        /**
+        * @ngdoc method
+        * @name {{moduleName}}.{{className}}#getCurrentId
+        * @methodOf {{moduleName}}.{{className}}
+        *
+        * @return {Object} Id of the currently logged-in user or null.
+        */
+        R.getCurrentId = function() {
+            return SiraAuth.currentUserId;
+        };
+    {{/if}}
+    }]);
+{{/forEach}} {{! classes }}
+
+
+module
+    .factory('SiraAuth', function() {
+        var props = ['accessTokenId', 'currentUserId'];
+
+        function SiraAuth() {
+            var self = this;
+            props.forEach(function(name) {
+                self[name] = load(name);
+            });
+            this.rememberMe = undefined;
+            this.currentUserData = null;
+        }
+
+        SiraAuth.prototype.save = function() {
+            var self = this;
+            var storage = this.rememberMe ? localStorage : sessionStorage;
+            props.forEach(function(name) {
+                save(storage, name, self[name]);
+            });
+        };
+
+        SiraAuth.prototype.setUser = function(accessTokenId, userId, userData) {
+            this.accessTokenId = accessTokenId;
+            this.currentUserId = userId;
+            this.currentUserData = userData;
+        };
+
+        SiraAuth.prototype.clearUser = function() {
+            this.accessTokenId = null;
+            this.currentUserId = null;
+            this.currentUserData = null;
+        };
+
+        return new SiraAuth();
+
+        // Note: LocalStorage converts the value to string
+        // We are using empty string as a marker for null/undefined values.
+        function save(storage, name, value) {
+            var key = '$Sira$' + name;
+            if (value == null) value = '';
+            storage[key] = value;
+        }
+
+        function load(name) {
+            var key = '$Sira$' + name;
+            return localStorage[key] || sessionStorage[key] || null;
+        }
+    })
+    .config(['$httpProvider', function($httpProvider) {
+        $httpProvider.interceptors.push('SiraAuthRequestInterceptor');
+    }])
+    .factory('SiraAuthRequestInterceptor', [ '$q', 'SiraAuth',
+        function($q, SiraAuth) {
+            return {
+                'request': function(config) {
+                    if (SiraAuth.accessTokenId) {
+                        config.headers.authorization = SiraAuth.accessTokenId;
+                    } else if (config.__isGetCurrentUser__) {
+                        // Return a stub 401 error for User.getCurrent() when
+                        // there is no user logged in
+                        var res = {
+                            body: { error: { status: 401 } },
+                            status: 401,
+                            config: config,
+                            headers: function() { return undefined; }
+                        };
+                        return $q.reject(res);
+                    }
+                    return config || $q.when(config);
+                }
+            }
+        }
+    ])
+    .factory('SiraResource', [ '$resource', function($resource) {
+        return function(url, params, actions) {
+            var resource = $resource(url, params, actions);
+
+            // Angular always calls POST on $save()
+            // This hack is based on
+            // http://kirkbushell.me/angular-js-using-ng-resource-in-a-more-restful-manner/
+            resource.prototype.$save = function(success, error) {
+                // Fortunately, Sira provides a convenient `upsert` method
+                // that exactly fits our needs.
+                var result = resource.upsert.call(this, {}, this, success, error);
+                return result.$promise || result;
+            };
+
+            return resource;
+        };
+    }]);
+
+})(window, window.angular);

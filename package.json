@@ -1,0 +1,32 @@
+{
+  "name": "sira-codegen-rest-js",
+  "version": "0.0.1",
+  "description": "Sira javascript library codegen for Rest API",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/taoyuan/sira-codegen-rest-js.git"
+  },
+  "author": "Tao Yuan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/taoyuan/sira-codegen-rest-js/issues"
+  },
+  "homepage": "https://github.com/taoyuan/sira-codegen-rest-js",
+  "devDependencies": {
+    "chai": "^1.9.1",
+    "grunt": "^0.4.5",
+    "mocha": "^1.21.4",
+    "sira-express-rest": "git://github.com/taoyuan/sira-express-rest",
+    "voya": "git://github.com/taoyuan/voya"
+  },
+  "dependencies": {
+    "js-beautify": "^1.5.1",
+    "jshint": "^2.5.3",
+    "lodash": "^2.4.1",
+    "temblate": "git://github.com/taoyuan/temblate"
+  }
+}

@@ -1,4 +1,4 @@
 sira-codegen-rest-js
 ====================
 
-Sira js codegen for Rest API
+Sira javascript library codegen for Rest API
