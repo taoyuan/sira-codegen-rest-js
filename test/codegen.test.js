@@ -29,7 +29,7 @@ describe('codegen', function () {
             moduleName: 'service',
             classes: s.restClasses(this.sapp)
         }, 'angular');
-        s.save(source, './tmp/sdk.js');
+        t.ok(source);
     });
 
     it('should ignore returns array with resultful', function () {
@@ -38,6 +38,6 @@ describe('codegen', function () {
             resultful: true,
             classes: s.restClasses(this.sapp)
         }, 'angular');
-        s.save(source, './tmp/sdk.js');
+        t.ok(source);
     });
 });
