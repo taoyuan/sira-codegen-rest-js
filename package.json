@@ -22,7 +22,6 @@
     "js-beautify": "^1.5.1",
     "jshint": "^2.5.3",
     "lodash": "^2.4.1",
-    "sira": "git://github.com/taoyuan/sira",
     "sira-express-rest": "taoyuan/sira-express-rest",
     "temblate": "latest"
   },
