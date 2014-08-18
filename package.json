@@ -27,6 +27,6 @@
     "jshint": "^2.5.3",
     "lodash": "^2.4.1",
     "sira-express-rest": "taoyuan/sira-express-rest",
-    "temblate": "taoyuan/temblate"
+    "temblate": "latest"
   }
 }

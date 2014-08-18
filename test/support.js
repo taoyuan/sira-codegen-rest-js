@@ -1,7 +1,6 @@
 "use strict";
 
 var voya = require('voya');
-var Rest = require('sira-express-rest').Rest;
 
 exports.save = function (data, path) {
     require('grunt').file.write(path, data, 'utf-8');
@@ -65,8 +64,3 @@ exports.givenSharedModel = function (clazz, config, fn, sharing) {
         done();
     }
 };
-
-exports.restClasses = function (sapp) {
-    return Rest.buildClasses(sapp);
-};
-
