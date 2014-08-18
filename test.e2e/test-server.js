@@ -123,16 +123,6 @@ app.post('/setup', function (req, res, next) {
 
 });
 
-//function classic(sapp) {
-//    sapp.module('sira-core');
-//
-//    if (sapp.enabled('auth')) {
-//        sapp.phase(require('sira-core').authorizer);
-//    }
-//
-//    sapp.phase(sira.boot.database(sapp.get('db') || sapp.get('database')));
-//}
-
 function buildRouter(sapp, options) {
     options = options || {};
 
