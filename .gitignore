@@ -27,3 +27,4 @@ node_modules
 .idea
 tmp
 generated
+karma-xunit.xml

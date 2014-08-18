@@ -37,7 +37,7 @@ var module = angular.module({{q moduleName}}, ['ngResource']);
     ~}}
     module.factory({{q className}}, ['SiraResource', 'SiraAuth', '$injector', function(Resource, SiraAuth, $injector) {
     {{! Constructor arguments are hardcoded for now. We should generate it from sharedCtor.accepts instead. ~}}
-    var R = Resource(urlBase + {{q path}}, { 'id': '@id' }, {
+    var R = Resource(urlBase + {{q respath}}, { 'id': '@id' }, {
     {{#forEach actions}}
         {{#unless isFirst}},{{/unless}}
         {{ngdocForAction this.actionName this}}
@@ -100,7 +100,7 @@ var module = angular.module({{q moduleName}}, ['ngResource']);
         *   from the server.
         */
         "getCurrent": {
-            url: urlBase + "/" + {{q path}} + "/:id",
+            url: urlBase + "/" + {{q ../path}} + "/:id",
             method: "GET",
             params: {
                 id: function() {
@@ -171,6 +171,7 @@ var module = angular.module({{q moduleName}}, ['ngResource']);
             return SiraAuth.currentUserId;
         };
     {{/if}}
+        return R;
     }]);
 {{/forEach}} {{! classes }}
 
